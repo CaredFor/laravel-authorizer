@@ -2,6 +2,9 @@
 
 namespace Benwilkins\Authorizer;
 
+use Benwilkins\Authorizer\Commands\AssignPermissionToRole;
+use Benwilkins\Authorizer\Commands\CreatePermission;
+use Benwilkins\Authorizer\Commands\CreateRole;
 use Benwilkins\Authorizer\Contracts\Permission as PermissionContract;
 use Benwilkins\Authorizer\Contracts\Role as RoleContract;
 use Benwilkins\Authorizer\Models\Permission;
@@ -24,6 +27,7 @@ class AuthorizerServiceProvider extends ServiceProvider
         }
 
         $loader->register();
+        $this->registerCommands();
     }
 
     public function register()
@@ -41,5 +45,16 @@ class AuthorizerServiceProvider extends ServiceProvider
     {
         $this->app->bind(PermissionContract::class, Permission::class);
         $this->app->bind(RoleContract::class, Role::class);
+    }
+
+    protected function registerCommands()
+    {
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                AssignPermissionToRole::class,
+                CreatePermission::class,
+                CreateRole::class
+            ]);
+        }
     }
 }

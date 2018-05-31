@@ -9,6 +9,10 @@ use Benwilkins\Authorizer\Contracts\Role;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
 
+/**
+ * Class Authorizer
+ * @package Benwilkins\Authorizer
+ */
 class Authorizer
 {
     const CACHE_KEY_PREFIX = 'authorizer.';
