@@ -8,6 +8,11 @@ return [
      */
     'cache_expiration' => 1440, // 60m * 24h
 
+    /*
+     * Set the default auth guard you wish to use.
+     */
+    'default_guard' => 'web',
+
     'tables' => [
         /*
          * If you want to use UUID's instead of INTs for model ID's, set this to true.
