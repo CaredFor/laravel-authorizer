@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateCanDoTables extends Migration
+class CreateAuthorizerTables extends Migration
 {
     /**
      * Run the migrations.
@@ -13,7 +13,7 @@ class CreateCanDoTables extends Migration
      */
     public function up()
     {
-        $tables = config('can-do.tables');
+        $tables = config('authorizer.tables');
 
         Schema::create($tables['permissions'], function (Blueprint $table) use ($tables) {
             if ($tables['uses_uuid']) {
@@ -79,7 +79,7 @@ class CreateCanDoTables extends Migration
      */
     public function down()
     {
-        $tableNames = config('can-do.tables');
+        $tableNames = config('authorizer.tables');
 
         Schema::dropIfExists($tableNames['roles_assigned']);
         Schema::dropIfExists($tableNames['permissions_assigned']);
