@@ -1,0 +1,23 @@
+{
+  "name": "benwilkins/laravel-authorizer",
+  "description": "A Laravel package to control permissions and roles.",
+  "license": "GPL-3.0-or-later",
+  "authors": [
+    {
+      "name": "Ben Wilkins",
+      "email": "bentwilkins@gmail.com"
+    }
+  ],
+  "minimum-stability": "dev",
+  "require": {},
+  "autoload": {
+    "psr-4": {
+      "Benwilkins\\Authorizer\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Benwilkins\\Authorizer\\Tests\\": "tests/"
+    }
+  }
+}
