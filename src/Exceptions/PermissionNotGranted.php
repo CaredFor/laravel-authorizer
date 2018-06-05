@@ -4,12 +4,11 @@
 namespace Benwilkins\Authorizer\Exceptions;
 
 
-class PermissionInvalid extends \Exception
+class PermissionNotGranted extends \Exception
 {
     public static function create(...$params)
     {
         $paramString = implode(', ', $params);
-
-        return new static("Invalid Permission ({$paramString})");
+        return new static("Permission not granted to user ({$paramString})");
     }
 }
