@@ -8,10 +8,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 interface Permission
 {
-    /**
-     * @return BelongsToMany
-     */
-    public function roles(): BelongsToMany;
-
+    public function roles();
     public static function findByHandle(string $handle): self;
 }
