@@ -35,4 +35,15 @@ return [
          */
         'permissions_assigned' => 'permissions_assigned',
     ],
+
+    'teams' => [
+        /*
+         * Enable teams to allow users to have different roles for different teams.
+         */
+        'enabled' => true,
+        /**
+         * The default model for teams.
+         */
+        'model' => '\App\Team'
+    ]
 ];
