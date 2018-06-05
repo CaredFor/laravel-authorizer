@@ -6,6 +6,7 @@ namespace Benwilkins\Authorizer;
 
 use Benwilkins\Authorizer\Contracts\Permission;
 use Benwilkins\Authorizer\Contracts\Role;
+use Benwilkins\Authorizer\Exceptions\ModelNameInvalid;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
 
@@ -19,8 +20,13 @@ class Authorizer
     const CACHE_PERMISSIONS_KEY = 'permissions';
     const CACHE_ROLES_KEY = 'roles';
 
-    public function __construct()
+    protected $permissionClass;
+    protected $roleClass;
+
+    public function __construct(Permission $permission, Role $role)
     {
+        $this->permissionClass = get_class($permission);
+        $this->roleClass = get_class($role);
     }
 
     /**
@@ -34,7 +40,7 @@ class Authorizer
             static::CACHE_KEY_PREFIX.static::CACHE_PERMISSIONS_KEY,
             config('authorizer.cache_expiration'),
             function () {
-                app(Permission::class)->with('roles')->get();
+                return app(Permission::class)->with('roles')->get();
             }
         );
     }
@@ -50,8 +56,29 @@ class Authorizer
             static::CACHE_KEY_PREFIX.static::CACHE_ROLES_KEY,
             config('authorizer.cache_expiration'),
             function () {
-                app(Role::class)->with('permissions')->get();
+                return app(Role::class)->with('permissions')->get();
             }
         );
+    }
+
+    public function getClass(string $modelName)
+    {
+        $prop = $modelName.'Class';
+
+        if (!property_exists($this, $prop)) {
+            throw ModelNameInvalid::create();
+        }
+
+        return $this->$prop;
+    }
+
+    public function flushCache($type = null)
+    {
+        if ($type) {
+            Cache::forget(static::CACHE_KEY_PREFIX.$type);
+        } else {
+            Cache::forget(static::CACHE_KEY_PREFIX.static::CACHE_PERMISSIONS_KEY);
+            Cache::forget(static::CACHE_KEY_PREFIX.static::CACHE_ROLES_KEY);
+        }
     }
 }
