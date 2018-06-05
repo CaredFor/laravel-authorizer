@@ -22,7 +22,7 @@ class AuthorizerLoader
         $this->gate->before(function (Authorizable $user, string $ability) {
             try {
                 if (method_exists($user, 'hasPermission')) {
-                    return $user->hasPermission($ability) ?: null;
+                    return $user->isGrantedPermission($ability) ?: null;
                 }
             } catch (PermissionInvalid $exception) {
             }
