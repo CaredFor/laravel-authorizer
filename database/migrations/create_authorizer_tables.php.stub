@@ -44,10 +44,12 @@ class CreateAuthorizerTables extends Migration
             if ($tables['uses_uuid']) {
                 $table->uuid('permission_id');
                 $table->uuid('entity_id');
+                $table->string('entity_type');
                 $table->uuid('team_id')->nullable();
             } else {
                 $table->unsignedInteger('permission_id');
                 $table->unsignedInteger('entity_id');
+                $table->string('entity_type');
                 $table->unsignedInteger('team_id')->nullable();
             }
 
@@ -60,10 +62,12 @@ class CreateAuthorizerTables extends Migration
             if ($tables['uses_uuid']) {
                 $table->uuid('role_id');
                 $table->uuid('entity_id');
+                $table->string('entity_type');
                 $table->uuid('team_id')->nullable();
             } else {
                 $table->unsignedInteger('role_id');
                 $table->unsignedInteger('entity_id');
+                $table->string('entity_type');
                 $table->unsignedInteger('team_id')->nullable();
             }
 
