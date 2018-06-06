@@ -19,13 +19,17 @@ class AuthorizerLoader
 
     public function register()
     {
-        $this->gate->before(function (Authorizable $user, string $ability) {
+        $this->gate->before(function (Authorizable $user, string $ability, $params = null) {
             try {
-                if (method_exists($user, 'hasPermission')) {
-                    return $user->isGrantedPermission($ability) ?: null;
+                $team = (count($params) > 0) ? $params[0] : null;
+
+                if (method_exists($user, 'isGrantedPermission')) {
+                    return $user->isGrantedPermission($ability, $team) ?: null;
                 }
             } catch (PermissionInvalid $exception) {
             }
         });
+
+        return true;
     }
 }
