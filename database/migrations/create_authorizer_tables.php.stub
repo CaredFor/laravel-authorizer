@@ -55,7 +55,7 @@ class CreateAuthorizerTables extends Migration
 
             $table->index(['entity_id', 'entity_type']);
             $table->index('team_id');
-            $table->primary(['permission_id', 'entity_id', 'entity_type']);
+            $table->primary(['permission_id', 'entity_id', 'entity_type', 'team_id']);
         });
 
         Schema::create($tables['roles_assigned'], function (Blueprint $table) use ($tables) {
@@ -73,7 +73,7 @@ class CreateAuthorizerTables extends Migration
 
             $table->index(['entity_id', 'entity_type']);
             $table->index('team_id');
-            $table->primary(['role_id', 'entity_id', 'entity_type']);
+            $table->primary(['role_id', 'entity_id', 'entity_type', 'team_id']);
         });
     }
 
