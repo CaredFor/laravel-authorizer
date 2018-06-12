@@ -45,14 +45,13 @@ class CreateAuthorizerTables extends Migration
                 $table->uuid('permission_id');
                 $table->uuid('entity_id');
                 $table->string('entity_type');
-                $table->uuid('team_id')->nullable();
             } else {
                 $table->unsignedInteger('permission_id');
                 $table->unsignedInteger('entity_id');
                 $table->string('entity_type');
-                $table->unsignedInteger('team_id')->nullable();
             }
 
+            $table->uuid('team_id')->default('');
             $table->index(['entity_id', 'entity_type']);
             $table->index('team_id');
             $table->primary(['permission_id', 'entity_id', 'entity_type', 'team_id']);
@@ -63,14 +62,13 @@ class CreateAuthorizerTables extends Migration
                 $table->uuid('role_id');
                 $table->uuid('entity_id');
                 $table->string('entity_type');
-                $table->uuid('team_id')->nullable();
             } else {
                 $table->unsignedInteger('role_id');
                 $table->unsignedInteger('entity_id');
                 $table->string('entity_type');
-                $table->unsignedInteger('team_id')->nullable();
             }
 
+            $table->uuid('team_id')->default('');
             $table->index(['entity_id', 'entity_type']);
             $table->index('team_id');
             $table->primary(['role_id', 'entity_id', 'entity_type', 'team_id']);
