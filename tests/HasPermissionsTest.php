@@ -6,12 +6,44 @@ namespace Benwilkins\Authorizer\Tests;
 use Benwilkins\Authorizer\AuthorizerFacade as Authorizer;
 use Benwilkins\Authorizer\Models\Permission;
 use Benwilkins\Authorizer\Models\Role;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 class HasPermissionsTest extends TestCase
 {
     use DatabaseMigrations, DatabaseTransactions;
+
+    public function testCreatesModelEvents()
+    {
+        $user = factory(\App\User::class)->create();
+        $events = $user->getObservableEvents();
+
+        $this->assertContains('permissionGranted', $events);
+        $this->assertContains('permissionRevoked', $events);
+    }
+
+    public function testFiresRoleGrantedEvent()
+    {
+        $fired = false;
+        \App\User::permissionGranted(function (Model $model) use (&$fired) { $fired = true; });
+        $user = factory(\App\User::class)->create();
+
+        $user->grantPermission('permission1');
+        $this->assertTrue($fired);
+    }
+
+    public function testFiresRoleRevokedEvent()
+    {
+        $fired = false;
+        \App\User::permissionRevoked(function (Model $model) use (&$fired) { $fired = true; });
+        $user = factory(\App\User::class)->create();
+
+        $user->grantPermission('permission1');
+        $user->revokePermission('permission1');
+
+        $this->assertTrue($fired);
+    }
 
     public function testGrantPermission()
     {

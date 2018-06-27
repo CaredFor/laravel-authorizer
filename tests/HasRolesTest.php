@@ -6,12 +6,44 @@ namespace Benwilkins\Authorizer\Tests;
 use App\User;
 use Benwilkins\Authorizer\Models\Permission;
 use Benwilkins\Authorizer\Models\Role;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 class HasRolesTest extends TestCase
 {
     use DatabaseMigrations, DatabaseTransactions;
+
+    public function testCreatesModelEvents()
+    {
+        $user = factory(\App\User::class)->create();
+        $events = $user->getObservableEvents();
+
+        $this->assertContains('roleGranted', $events);
+        $this->assertContains('roleRevoked', $events);
+    }
+
+    public function testFiresRoleGrantedEvent()
+    {
+        $fired = false;
+        User::roleGranted(function (Model $model) use (&$fired) { $fired = true; });
+        $user = factory(\App\User::class)->create();
+
+        $user->grantRole(Role::first());
+        $this->assertTrue($fired);
+    }
+
+    public function testFiresRoleRevokedEvent()
+    {
+        $fired = false;
+        User::roleRevoked(function (Model $model) use (&$fired) { $fired = true; });
+        $user = factory(\App\User::class)->create();
+
+        $user->grantRole(Role::first());
+        $user->revokeRole(Role::first());
+
+        $this->assertTrue($fired);
+    }
 
     public function testGrantRole()
     {

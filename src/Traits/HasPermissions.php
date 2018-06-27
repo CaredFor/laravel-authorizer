@@ -8,6 +8,7 @@ use Benwilkins\Authorizer\AuthorizerFacade as Authorizer;
 use Benwilkins\Authorizer\Contracts\Permission;
 use Benwilkins\Authorizer\Contracts\Role;
 use Benwilkins\Authorizer\Exceptions\PermissionNotGranted;
+use Illuminate\Database\Eloquent\Model;
 use \Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
@@ -18,6 +19,29 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
  */
 trait HasPermissions
 {
+    /**
+     * Boot up the HasRoles trait
+     */
+    public static function bootHasPermissions()
+    {
+        /**
+         * Tap into the eloquent booted event so we can add the extra observable events.
+         */
+        app('events')->listen('eloquent.booted: ' .static::class, function(Model $model) {
+            $model->addObservableEvents(['permissionGranted', 'permissionRevoked']);
+        });
+    }
+
+    public static function permissionGranted($callback)
+    {
+        static::registerModelEvent('permissionGranted', $callback);
+    }
+
+    public static function permissionRevoked($callback)
+    {
+        static::registerModelEvent('permissionRevoked', $callback);
+    }
+
     /**
      * @return MorphToMany
      */
@@ -63,6 +87,7 @@ trait HasPermissions
         $permission = $this->getSavedPermission($permission);
 
         $this->permissions()->save($permission, ['team_id' => $this->getTeamForPermission($team)]);
+        $this->fireModelEvent('permissionGranted', false);
 
         return $this;
     }
@@ -80,6 +105,7 @@ trait HasPermissions
         }
 
         $this->permissions()->wherePivot('team_id', $teamId)->detach($permission);
+        $this->fireModelEvent('permissionRevoked', false);
 
         return $this;
     }

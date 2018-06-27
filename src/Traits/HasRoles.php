@@ -6,11 +6,35 @@ use Benwilkins\Authorizer\AuthorizerFacade as Authorizer;
 use \Benwilkins\Authorizer\Contracts\Role;
 use Benwilkins\Authorizer\Exceptions\RoleNotGranted;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Collection;
 
 trait HasRoles
 {
+    /**
+     * Boot up the HasRoles trait
+     */
+    public static function bootHasRoles()
+    {
+        /**
+         * Tap into the eloquent booted event so we can add the extra observable events.
+         */
+        app('events')->listen('eloquent.booted: ' .static::class, function(Model $model) {
+            $model->addObservableEvents(['roleGranted', 'roleRevoked']);
+        });
+    }
+
+    public static function roleGranted($callback)
+    {
+        static::registerModelEvent('roleGranted', $callback);
+    }
+
+    public static function roleRevoked($callback)
+    {
+        static::registerModelEvent('roleRevoked', $callback);
+    }
+
     public function roles(): MorphToMany
     {
         return $this->morphToMany(
@@ -28,6 +52,7 @@ trait HasRoles
     public function grantRole($role, $team = null): self
     {
         $this->roles()->save($this->getSavedRole($role), ['team_id' => $this->getTeamForRole($team)]);
+        $this->fireModelEvent('roleGranted', false);
 
         return $this;
     }
@@ -49,6 +74,7 @@ trait HasRoles
         }
 
         $this->roles()->wherePivot('team_id', $teamId)->detach($role);
+        $this->fireModelEvent('roleRevoked', false);
 
         return $this;
     }
