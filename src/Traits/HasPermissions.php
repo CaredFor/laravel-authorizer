@@ -182,7 +182,7 @@ trait HasPermissions
     protected function getTeamForPermission($team)
     {
         if ($this->modelIsRole()) {
-            $team = null;
+            $team = '';
 
         } elseif ($team) {
             $team = (is_string($team) || is_int($team))
