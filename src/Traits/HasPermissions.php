@@ -140,11 +140,11 @@ trait HasPermissions
         /** @var Collection $directPermissions */
         $directPermissions = $this->permissions()->get();
         /** @var Collection $permissionsViaRoles */
-        $permissionsViaRoles = $this->load('roles', 'roles.permissions')
-            ->roles->flatMap(function ($role) {
+        $permissionsViaRoles = $this->roles()->with('permissions')->get()
+            ->flatMap(function ($role) {
                 $permissions = $role->permissions->each(function ($permission) use ($role) {
                     return $permission->pivot->team_id = $role->pivot->team_id;
-                }) ;
+                });
 
                 return $permissions;
             })->values();
