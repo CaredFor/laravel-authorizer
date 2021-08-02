@@ -20,7 +20,7 @@ trait HasRoles
         /**
          * Tap into the eloquent booted event so we can add the extra observable events.
          */
-        app('events')->listen('eloquent.booted: ' .static::class, function(Model $model) {
+        app('events')->listen('eloquent.booted: ' . static::class, function (Model $model) {
             $model->addObservableEvents(['roleGranted', 'roleRevoked']);
         });
     }
@@ -41,17 +41,19 @@ trait HasRoles
             Authorizer::getClass('role'),
             'entity',
             config('authorizer.tables.roles_assigned')
-        )->withPivot('team_id');
+        )->withPivot('team_id', 'facility_id');
     }
 
     /**
      * @param string|Role $role
      * @param string|int|\Illuminate\Database\Eloquent\Model $team
+     * @param string|null $facilityId
      * @return self
+     * @throws RoleNotGranted
      */
-    public function grantRole($role, $team = null): self
+    public function grantRole($role, $team = null, $facilityId = null): self
     {
-        $this->roles()->save($this->getSavedRole($role), ['team_id' => $this->getTeamForRole($team)]);
+        $this->roles()->save($this->getSavedRole($role), ['team_id' => $this->getTeamForRole($team), 'facility_id' => $facilityId]);
         $this->fireModelEvent('roleGranted', false);
 
         return $this;
@@ -60,20 +62,22 @@ trait HasRoles
     /**
      * @param string|Role $role
      * @param string|int|\Illuminate\Database\Eloquent\Model $team
+     * @param string|null $facilityId
      * @return self
+     * @throws RoleNotGranted
      */
-    public function revokeRole($role, $team = null): self
+    public function revokeRole($role, $team = null, $facilityId = null): self
     {
         $teamId = $this->getTeamForRole($team);
         $role = $this->getSavedRole($role);
 
-        if (!$this->roles->contains(function ($item, $key) use ($role, $teamId) {
-            return $item->id === $role->id && $item->pivot->team_id == $teamId;
+        if (!$this->roles->contains(function ($item, $key) use ($role, $teamId, $facilityId) {
+            return $item->id === $role->id && $item->pivot->team_id == $teamId && $item->pivot->facility_id === $facilityId;
         })) {
             throw RoleNotGranted::create($role->handle, $teamId);
         }
 
-        $this->roles()->wherePivot('team_id', $teamId)->detach($role);
+        $this->roles()->wherePivot('team_id', $teamId)->wherePivot('facility_id', $facilityId)->detach($role);
         $this->fireModelEvent('roleRevoked', false);
 
         return $this;
@@ -84,18 +88,23 @@ trait HasRoles
      *
      * @param string|Role $role The role handle or model
      * @param string|int|\Illuminate\Database\Eloquent\Model $team
+     * @param string|null $facilityId
      * @return bool
      */
-    public function isRole($role, $team = null): bool
+    public function isRole($role, $team = null, $facilityId = null): bool
     {
         $team = $this->getTeamForRole($team);
 
-        return $this->roles->contains(function ($item, $key) use ($role, $team) {
+        return $this->roles->contains(function ($item, $key) use ($role, $team, $facilityId) {
             if (is_string($role)) { // role handle
-                return ($item->handle === $role && (is_null($item->pivot->team_id) || $item->pivot->team_id == $team));
+                return ($item->handle === $role
+                    && (is_null($item->pivot->team_id) || $item->pivot->team_id == $team)
+                    && (is_null($item->pivot->facility_id) || $item->pivot->facility_id == $facilityId));
 
             } else { // Role model
-                return ($item->id === $role->id && (!$item->pivot->team_id || $item->pivot->team_id == $team));
+                return ($item->id === $role->id
+                    && (!$item->pivot->team_id || $item->pivot->team_id == $team)
+                    && (!$item->pivot->facility_id || $item->pivot->facility_id == $facilityId));
             }
         });
     }
@@ -111,8 +120,8 @@ trait HasRoles
             $role = Authorizer::getClass('role')::findByHandle($role);
         }
 
-        return $query->whereHas('roles', function($query) use ($role) {
-            $query->where(config('authorizer.tables.roles').'.id', $role->id);
+        return $query->whereHas('roles', function ($query) use ($role) {
+            $query->where(config('authorizer.tables.roles') . '.id', $role->id);
         });
     }
 
