@@ -147,7 +147,9 @@ trait HasPermissions
         $permissionsViaRoles = $this->roles()->with('permissions')->get()
             ->flatMap(function ($role) {
                 $permissions = $role->permissions->each(function ($permission) use ($role) {
-                    return $permission->pivot->team_id = $role->pivot->team_id;
+                    $permission->pivot->team_id = $role->pivot->team_id;
+                    $permission->pivot->facility_id = $role->pivot->facility_id;
+                    return true;
                 });
 
                 return $permissions;
