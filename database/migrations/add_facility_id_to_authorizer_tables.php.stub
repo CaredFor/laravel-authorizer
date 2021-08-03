@@ -1,0 +1,47 @@
+<?php
+
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
+
+class AddFacilityIdToAuthorizerTables extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        $tables = config('authorizer.tables');
+
+        Schema::table($tables['permissions_assigned'], function (Blueprint $table) {
+            $table->uuid('facility_id')->after('team_id')->nullable();
+        });
+
+        Schema::table($tables['roles_assigned'], function (Blueprint $table) {
+            $table->uuid('facility_id')->after('team_id')->nullable();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        $tables = config('authorizer.tables');
+
+        Schema::table($tables['permissions_assigned'], function (Blueprint $table) {
+            if (DB::getDriverName() !== 'sqlite') {
+                $table->dropColumn('facility_id');
+            }
+        });
+        Schema::table($tables['roles_assigned'], function (Blueprint $table) {
+            if (DB::getDriverName() !== 'sqlite') {
+                $table->dropColumn('facility_id');
+            }
+        });
+    }
+}

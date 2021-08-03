@@ -27,7 +27,7 @@ trait HasPermissions
         /**
          * Tap into the eloquent booted event so we can add the extra observable events.
          */
-        app('events')->listen('eloquent.booted: ' .static::class, function(Model $model) {
+        app('events')->listen('eloquent.booted: ' . static::class, function (Model $model) {
             $model->addObservableEvents(['permissionGranted', 'permissionRevoked']);
         });
     }
@@ -51,7 +51,7 @@ trait HasPermissions
             Authorizer::getClass('permission'),
             'entity',
             config('authorizer.tables.permissions_assigned')
-        )->withPivot('team_id');
+        )->withPivot('team_id', 'facility_id');
     }
 
     /**
@@ -80,31 +80,33 @@ trait HasPermissions
      *
      * @param string|Permission $permission
      * @param string|int|\Illuminate\Database\Eloquent\Model $team
+     * @param string|null $facilityId
      * @return self
+     * @throws PermissionNotGranted
      */
-    public function grantPermission($permission, $team = null): self
+    public function grantPermission($permission, $team = null, $facilityId = null): self
     {
         $permission = $this->getSavedPermission($permission);
 
-        $this->permissions()->save($permission, ['team_id' => $this->getTeamForPermission($team)]);
+        $this->permissions()->save($permission, ['team_id' => $this->getTeamForPermission($team), 'facility_id' => $facilityId]);
         $this->fireModelEvent('permissionGranted', false);
 
         return $this;
     }
 
-    public function revokePermission($permission, $team = null): self
+    public function revokePermission($permission, $team = null, $facilityId = null): self
     {
         $directPermissions = $this->permissions()->get();
         $teamId = $this->getTeamForPermission($team);
         $permission = $this->getSavedPermission($permission);
 
-        if (!$directPermissions->contains(function ($item, $key) use ($permission, $teamId) {
-            return $item->id === $permission->id && $item->pivot->team_id == $teamId;
+        if (!$directPermissions->contains(function ($item, $key) use ($permission, $teamId, $facilityId) {
+            return $item->id === $permission->id && $item->pivot->team_id == $teamId && $item->pivot->facility_id == $facilityId;
         })) {
             throw PermissionNotGranted::create($permission->handle, $teamId);
         }
 
-        $this->permissions()->wherePivot('team_id', $teamId)->detach($permission);
+        $this->permissions()->wherePivot('team_id', $teamId)->wherePivot('facility_id', $facilityId)->detach($permission);
         $this->fireModelEvent('permissionRevoked', false);
 
         return $this;
@@ -113,20 +115,22 @@ trait HasPermissions
     /**
      * @param string|Permission $permission
      * @param string|int|\Illuminate\Support\Collection $team
+     * @param string|null $facilityId
      * @return bool
      */
-    public function isGrantedPermission($permission, $team = null): bool
+    public function isGrantedPermission($permission, $team = null, $facilityId = null): bool
     {
         $teamId = $this->getTeamForPermission($team);
 
-        return $this->allPermissions()->contains(function (Permission $item, $key) use ($permission, $teamId) {
+        return $this->allPermissions()->contains(function (Permission $item, $key) use ($permission, $teamId, $facilityId) {
             $matchesTeam = (!$item->pivot->team_id || $item->pivot->team_id == $teamId);
+            $matchesFacility = (!$item->pivot->facility_id || $item->pivot->facility_id == $facilityId);
 
             if (is_string($permission)) { // permission handle
-                return ($item->handle === $permission && $matchesTeam);
+                return ($item->handle === $permission && $matchesTeam && $matchesFacility);
             }
 
-            return ($item->id === $permission->id && $matchesTeam); // permission model
+            return ($item->id === $permission->id && $matchesTeam && $matchesFacility); // permission model
         });
     }
 
@@ -143,7 +147,9 @@ trait HasPermissions
         $permissionsViaRoles = $this->roles()->with('permissions')->get()
             ->flatMap(function ($role) {
                 $permissions = $role->permissions->each(function ($permission) use ($role) {
-                    return $permission->pivot->team_id = $role->pivot->team_id;
+                    $permission->pivot->team_id = $role->pivot->team_id;
+                    $permission->pivot->facility_id = $role->pivot->facility_id;
+                    return true;
                 });
 
                 return $permissions;

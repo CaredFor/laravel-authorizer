@@ -26,6 +26,13 @@ class AuthorizerServiceProvider extends ServiceProvider
             ], 'migrations');
         }
 
+        if (! class_exists('AddFacilityIdToAuthorizerTables')) {
+            $timestamp = date('Y_m_d_His', time());
+            $this->publishes([
+                __DIR__ . '/../database/migrations/add_facility_id_to_authorizer_tables.php' => $this->app->databasePath()."/migrations/{$timestamp}_add_facility_id_to_authorizer_tables.php",
+            ], 'migrations');
+        }
+
         $loader->register();
         $this->registerCommands();
     }
