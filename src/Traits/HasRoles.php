@@ -72,12 +72,21 @@ trait HasRoles
         $role = $this->getSavedRole($role);
 
         if (!$this->roles->contains(function ($item, $key) use ($role, $teamId, $facilityId) {
-            return $item->id === $role->id && $item->pivot->team_id == $teamId && $item->pivot->facility_id === $facilityId;
+            if ($teamId) {
+                return $item->id === $role->id && $item->pivot->team_id == $teamId;
+            } else {
+                return $item->id === $role->id && $item->pivot->facility_id === $facilityId;
+            }
         })) {
             throw RoleNotGranted::create($role->handle, $teamId);
         }
 
-        $this->roles()->wherePivot('team_id', $teamId)->wherePivot('facility_id', $facilityId)->detach($role);
+        if ($teamId) {
+            $this->roles()->wherePivot('team_id', $teamId)->detach($role);
+        } else {
+            $this->roles()->wherePivot('team_id', $teamId)->wherePivot('facility_id', $facilityId)->detach($role);
+        }
+
         $this->fireModelEvent('roleRevoked', false);
 
         return $this;
