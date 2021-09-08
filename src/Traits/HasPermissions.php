@@ -101,12 +101,21 @@ trait HasPermissions
         $permission = $this->getSavedPermission($permission);
 
         if (!$directPermissions->contains(function ($item, $key) use ($permission, $teamId, $facilityId) {
-            return $item->id === $permission->id && $item->pivot->team_id == $teamId && $item->pivot->facility_id == $facilityId;
+            if ($teamId) {
+                return $item->id === $permission->id && $item->pivot->team_id == $teamId;
+            } else {
+                return $item->id === $permission->id && $item->pivot->facility_id == $facilityId;
+            }
         })) {
             throw PermissionNotGranted::create($permission->handle, $teamId);
         }
 
-        $this->permissions()->wherePivot('team_id', $teamId)->wherePivot('facility_id', $facilityId)->detach($permission);
+        if ($teamId) {
+            $this->permissions()->wherePivot('team_id', $teamId)->detach($permission);
+        } else {
+            $this->permissions()->wherePivot('team_id', $teamId)->wherePivot('facility_id', $facilityId)->detach($permission);
+        }
+
         $this->fireModelEvent('permissionRevoked', false);
 
         return $this;
