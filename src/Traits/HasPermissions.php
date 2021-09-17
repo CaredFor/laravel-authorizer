@@ -136,10 +136,19 @@ trait HasPermissions
             $matchesFacility = (!$item->pivot->facility_id || $item->pivot->facility_id == $facilityId);
 
             if (is_string($permission)) { // permission handle
-                return ($item->handle === $permission && $matchesTeam && $matchesFacility);
+                if ($teamId) {
+                    return ($item->handle === $permission && $matchesTeam);
+                } else {
+                    return ($item->handle === $permission && $matchesFacility);
+                }
             }
 
-            return ($item->id === $permission->id && $matchesTeam && $matchesFacility); // permission model
+            // permission model
+            if ($teamId) {
+                return ($item->id === $permission->id && $matchesTeam);
+            } else {
+                return ($item->id === $permission->id && $matchesFacility);
+            }
         });
     }
 
