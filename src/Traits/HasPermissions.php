@@ -132,22 +132,20 @@ trait HasPermissions
         $teamId = $this->getTeamForPermission($team);
 
         return $this->allPermissions()->contains(function (Permission $item, $key) use ($permission, $teamId, $facilityId) {
-            $matchesTeam = (!$item->pivot->team_id || $item->pivot->team_id == $teamId);
-            $matchesFacility = (!$item->pivot->facility_id || $item->pivot->facility_id == $facilityId);
+            $matchesTeam = ($item->pivot->team_id == $teamId);
+            $matchesFacility = ($item->pivot->facility_id == $facilityId);
+            $matchesPermission = is_string($permission) ? $item->handle === $permission : $item->id === $permission->id;
 
-            if (is_string($permission)) { // permission handle
-                if ($teamId) {
-                    return ($item->handle === $permission && $matchesTeam);
-                } else {
-                    return ($item->handle === $permission && $matchesFacility);
+            if ($matchesPermission) {
+                if (!$item->pivot->team_id && !$item->pivot->facility_id) {
+                    return true;
                 }
-            }
 
-            // permission model
-            if ($teamId) {
-                return ($item->id === $permission->id && $matchesTeam);
-            } else {
-                return ($item->id === $permission->id && $matchesFacility);
+                if ($teamId) {
+                    return ($matchesTeam);
+                } else {
+                    return ($matchesFacility && !$item->pivot->team_id);
+                }
             }
         });
     }
