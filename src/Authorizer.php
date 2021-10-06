@@ -37,13 +37,7 @@ class Authorizer
      */
     public function permissions($cacheKey = null): Collection
     {
-        return Cache::remember(
-            $cacheKey.static::CACHE_KEY_PREFIX.static::CACHE_PERMISSIONS_KEY,
-            config('authorizer.cache_expiration'),
-            function () {
-                return app(Permission::class)->with('roles')->get();
-            }
-        );
+        return app(Permission::class)->with('roles')->get();
     }
 
     /**
@@ -54,13 +48,7 @@ class Authorizer
      */
     public function roles($cacheKey = null): Collection
     {
-        return Cache::remember(
-            $cacheKey.static::CACHE_KEY_PREFIX.static::CACHE_ROLES_KEY,
-            config('authorizer.cache_expiration'),
-            function () {
-                return app(Role::class)->with('permissions')->get();
-            }
-        );
+        return app(Role::class)->with('permissions')->get();
     }
 
     public function getClass(string $modelName)
