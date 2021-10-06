@@ -32,12 +32,13 @@ class Authorizer
     /**
      * Gets all available permissions.
      *
+     * @param $cacheKey
      * @return Collection
      */
-    public function permissions(): Collection
+    public function permissions($cacheKey = null): Collection
     {
         return Cache::remember(
-            static::CACHE_KEY_PREFIX.static::CACHE_PERMISSIONS_KEY,
+            $cacheKey.static::CACHE_KEY_PREFIX.static::CACHE_PERMISSIONS_KEY,
             config('authorizer.cache_expiration'),
             function () {
                 return app(Permission::class)->with('roles')->get();
@@ -48,12 +49,13 @@ class Authorizer
     /**
      * Gets all available roles.
      *
+     * @param null $cacheKey
      * @return Collection
      */
-    public function roles(): Collection
+    public function roles($cacheKey = null): Collection
     {
         return Cache::remember(
-            static::CACHE_KEY_PREFIX.static::CACHE_ROLES_KEY,
+            $cacheKey.static::CACHE_KEY_PREFIX.static::CACHE_ROLES_KEY,
             config('authorizer.cache_expiration'),
             function () {
                 return app(Role::class)->with('permissions')->get();
