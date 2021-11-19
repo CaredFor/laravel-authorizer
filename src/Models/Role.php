@@ -11,7 +11,7 @@ use Benwilkins\Authorizer\Traits\FlushesAuthorizerCache;
 use Benwilkins\Authorizer\Traits\HasPermissions;
 use Benwilkins\Authorizer\Traits\UuidForKey;
 use Illuminate\Database\Eloquent\Model;
-
+use Illuminate\Database\Eloquent\SoftDeletes;
 /**
  * Class Role
  * @package Benwilkins\Authorizer\Models
@@ -34,7 +34,21 @@ class Role extends Model implements RoleContract
             User::class,
             'entity',
             config('authorizer.tables.roles_assigned')
-        );
+        )
+            ->whereNull('deleted_at')
+            ->withTimestamps()
+            ->withPivot(['deleted_at']);
+    }
+
+    public function usersWithTrashed()
+    {
+        return $this->morphedByMany(
+            User::class,
+            'entity',
+            config('authorizer.tables.roles_assigned')
+        )
+            ->withTimestamps()
+            ->withPivot(['deleted_at']);
     }
 
     public static function findByHandle(string $handle): RoleContract
