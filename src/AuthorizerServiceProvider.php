@@ -9,6 +9,8 @@ use Benwilkins\Authorizer\Contracts\Permission as PermissionContract;
 use Benwilkins\Authorizer\Contracts\Role as RoleContract;
 use Benwilkins\Authorizer\Models\Permission;
 use Benwilkins\Authorizer\Models\Role;
+use Benwilkins\Authorizer\Observers\RoleObserver;
+use App\User;
 use Illuminate\Support\ServiceProvider;
 
 class AuthorizerServiceProvider extends ServiceProvider
@@ -32,6 +34,8 @@ class AuthorizerServiceProvider extends ServiceProvider
                 __DIR__ . '/../database/migrations/add_facility_id_to_authorizer_tables.php' => $this->app->databasePath()."/migrations/{$timestamp}_add_facility_id_to_authorizer_tables.php",
             ], 'migrations');
         }
+
+        User::observe(RoleObserver::class);
 
         $loader->register();
         $this->registerCommands();

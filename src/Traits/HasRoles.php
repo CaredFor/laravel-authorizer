@@ -68,21 +68,7 @@ trait HasRoles
      */
     public function grantRole($role, $team = null, $facilityId = null): self
     {
-        $teamId = $this->getTeamForRole($team);
-        // FIXME: on grant of previously granted role, restore soft deleted role?  Else, need to make the record unique.  Can we modify a field?  Change unique constraint?
-        if (
-            $this->rolesWithTrashed()->wherePivot('team_id', $teamId)
-                ->wherePivot('facility_id', $facilityId)
-                ->exists()
-        ) {
-            if($teamId) {
-                $this->rolesWithTrashed()->wherePivot('team_id', $teamId)->update(['deleted_at' => null]);
-            } else {
-                $this->rolesWithTrashed()->wherePivot('team_id', $teamId)->wherePivot('facility_id', $facilityId)->update(['deleted_at' => null]);
-            }
-        } else {
-            $this->roles()->save($this->getSavedRole($role), ['team_id' => $this->getTeamForRole($team), 'facility_id' => $facilityId]);
-        }
+        $this->roles()->save($this->getSavedRole($role), ['team_id' => $this->getTeamForRole($team), 'facility_id' => $facilityId]);
         $this->fireModelEvent('roleGranted', false);
 
         return $this;
@@ -97,23 +83,25 @@ trait HasRoles
      */
     public function revokeRole($role, $team = null, $facilityId = null): self
     {
+        // Need observer to catch
+        // when deleting, update deleted_at and return false.
         $teamId = $this->getTeamForRole($team);
         $role = $this->getSavedRole($role);
 
         if (!$this->roles->contains(function ($item, $key) use ($role, $teamId, $facilityId) {
             if ($teamId) {
-                return is_null($item->deleted_at) && $item->id === $role->id && $item->pivot->team_id == $teamId;
+                return $item->id === $role->id && $item->pivot->team_id == $teamId;
             } else {
-                return is_null($item->deleted_at) && $item->id === $role->id && $item->pivot->facility_id === $facilityId;
+                return $item->id === $role->id && $item->pivot->facility_id === $facilityId;
             }
         })) {
             throw RoleNotGranted::create($role->handle, $teamId);
         }
 
         if ($teamId) {
-            $this->roles()->wherePivot('team_id', $teamId)->update(['deleted_at' => Carbon::now()]);
+            $this->roles()->wherePivot('team_id', $teamId)->detach($role);
         } else {
-            $this->roles()->wherePivot('team_id', $teamId)->wherePivot('facility_id', $facilityId)->update(['deleted_at' => Carbon::now()]);
+            $this->roles()->wherePivot('team_id', $teamId)->wherePivot('facility_id', $facilityId)->detach($role);
         }
 
         $this->fireModelEvent('roleRevoked', false);
