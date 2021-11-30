@@ -5,6 +5,7 @@ namespace Benwilkins\Authorizer\Traits;
 use Benwilkins\Authorizer\AuthorizerFacade as Authorizer;
 use \Benwilkins\Authorizer\Contracts\Role;
 use Benwilkins\Authorizer\Exceptions\RoleNotGranted;
+use Benwilkins\Authorizer\Models\RoleAssigned;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
@@ -42,22 +43,21 @@ trait HasRoles
             Authorizer::getClass('role'),
             'entity',
             config('authorizer.tables.roles_assigned')
-        )
-            ->whereNull('deleted_at')
+        )->using(RoleAssigned::class)
             ->withTimestamps()
             ->withPivot('team_id', 'facility_id', 'deleted_at');
     }
 
-    public function rolesWithTrashed(): MorphToMany
-    {
-        return $this->morphToMany(
-            Authorizer::getClass('role'),
-            'entity',
-            config('authorizer.tables.roles_assigned')
-        )
-            ->withTimestamps()
-            ->withPivot('team_id', 'facility_id', 'deleted_at');
-    }
+//    public function rolesWithTrashed(): MorphToMany
+//    {
+//        return $this->morphToMany(
+//            Authorizer::getClass('role'),
+//            'entity',
+//            config('authorizer.tables.roles_assigned')
+//        )
+//            ->withTimestamps()
+//            ->withPivot('team_id', 'facility_id', 'deleted_at');
+//    }
 
     /**
      * @param string|Role $role

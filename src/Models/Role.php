@@ -34,22 +34,21 @@ class Role extends Model implements RoleContract
             User::class,
             'entity',
             config('authorizer.tables.roles_assigned')
-        )
-            ->whereNull('deleted_at')
+        )->using(RoleAssigned::class)
             ->withTimestamps()
             ->withPivot(['deleted_at']);
     }
 
-    public function usersWithTrashed()
-    {
-        return $this->morphedByMany(
-            User::class,
-            'entity',
-            config('authorizer.tables.roles_assigned')
-        )
-            ->withTimestamps()
-            ->withPivot(['deleted_at']);
-    }
+//    public function usersWithTrashed()
+//    {
+//        return $this->morphedByMany(
+//            User::class,
+//            'entity',
+//            config('authorizer.tables.roles_assigned')
+//        )
+//            ->withTimestamps()
+//            ->withPivot(['deleted_at']);
+//    }
 
     public static function findByHandle(string $handle): RoleContract
     {

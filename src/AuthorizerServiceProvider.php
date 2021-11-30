@@ -9,7 +9,8 @@ use Benwilkins\Authorizer\Contracts\Permission as PermissionContract;
 use Benwilkins\Authorizer\Contracts\Role as RoleContract;
 use Benwilkins\Authorizer\Models\Permission;
 use Benwilkins\Authorizer\Models\Role;
-use Benwilkins\Authorizer\Observers\RoleObserver;
+use Benwilkins\Authorizer\Models\RoleAssigned;
+use Benwilkins\Authorizer\Observers\RoleAssignedObserver;
 use App\User;
 use Illuminate\Support\ServiceProvider;
 
@@ -35,7 +36,7 @@ class AuthorizerServiceProvider extends ServiceProvider
             ], 'migrations');
         }
 
-        User::observe(RoleObserver::class);
+//        RoleAssigned::observe(RoleAssignedObserver::class);
 
         $loader->register();
         $this->registerCommands();
