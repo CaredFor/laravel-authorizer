@@ -17,12 +17,12 @@ class RoleAssignedObserver
 
     public function deleted(RoleAssigned $roleAssigned)
     {
-//        dd($roleAssigned);
+
+       dd($roleAssigned);
     }
 
     public function creating(RoleAssigned $roleAssigned)
     {
-//        echo($roleAssigned);
 //        dd($roleAssigned);
     }
 }

@@ -2,14 +2,13 @@
 
 namespace Benwilkins\Authorizer\Models;
 
+use App\Observers\TeamUserPivotObserver;
 use Benwilkins\Authorizer\Observers\RoleAssignedObserver;
 use Illuminate\Database\Eloquent\Relations\MorphPivot;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class RoleAssigned extends MorphPivot
 {
-    use SoftDeletes;
-
     protected $table = 'roles_assigned';
     public $incrementing = 'false';
     protected $fillable = [
@@ -19,12 +18,4 @@ class RoleAssigned extends MorphPivot
         'team_id',
         'facility_id'
     ];
-
-//    public function delete()
-//    {
-////        app('events')->listen('eloquent.deleting: ' . __CLASS__, $this);
-//        event('eloquent.deleting: ' . __CLASS__, $this);
-//        parent::delete();
-//        event('eloquent.deleted: ' . __CLASS__, $this);
-//    }
 }

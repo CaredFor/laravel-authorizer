@@ -48,17 +48,6 @@ trait HasRoles
             ->withPivot('team_id', 'facility_id', 'deleted_at');
     }
 
-//    public function rolesWithTrashed(): MorphToMany
-//    {
-//        return $this->morphToMany(
-//            Authorizer::getClass('role'),
-//            'entity',
-//            config('authorizer.tables.roles_assigned')
-//        )
-//            ->withTimestamps()
-//            ->withPivot('team_id', 'facility_id', 'deleted_at');
-//    }
-
     /**
      * @param string|Role $role
      * @param string|int|\Illuminate\Database\Eloquent\Model $team

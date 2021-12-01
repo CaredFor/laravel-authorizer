@@ -36,19 +36,9 @@ class Role extends Model implements RoleContract
             config('authorizer.tables.roles_assigned')
         )->using(RoleAssigned::class)
             ->withTimestamps()
-            ->withPivot(['deleted_at']);
+            ->withPivot('deleted_at');
     }
 
-//    public function usersWithTrashed()
-//    {
-//        return $this->morphedByMany(
-//            User::class,
-//            'entity',
-//            config('authorizer.tables.roles_assigned')
-//        )
-//            ->withTimestamps()
-//            ->withPivot(['deleted_at']);
-//    }
 
     public static function findByHandle(string $handle): RoleContract
     {

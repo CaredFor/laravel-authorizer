@@ -36,7 +36,7 @@ class AuthorizerServiceProvider extends ServiceProvider
             ], 'migrations');
         }
 
-//        RoleAssigned::observe(RoleAssignedObserver::class);
+        RoleAssigned::observe(RoleAssignedObserver::class);
 
         $loader->register();
         $this->registerCommands();
