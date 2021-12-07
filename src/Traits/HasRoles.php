@@ -2,14 +2,11 @@
 
 namespace Benwilkins\Authorizer\Traits;
 
-use Carbon\Carbon;
 use Benwilkins\Authorizer\AuthorizerFacade as Authorizer;
 use \Benwilkins\Authorizer\Contracts\Role;
 use Benwilkins\Authorizer\Exceptions\RoleNotGranted;
-use Benwilkins\Authorizer\Models\RolesAssignedLog;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Collection;
 
@@ -47,14 +44,6 @@ trait HasRoles
         )->withPivot('team_id', 'facility_id');
     }
 
-    public function roleLog(): MorphMany
-    {
-        return $this->morphMany(
-            RolesAssignedLog::class,
-            'entity',
-        );
-    }
-
     /**
      * @param string|Role $role
      * @param string|int|\Illuminate\Database\Eloquent\Model $team
@@ -64,15 +53,7 @@ trait HasRoles
      */
     public function grantRole($role, $team = null, $facilityId = null): self
     {
-        $role = $this->getSavedRole($role);
-        $this->roles()->save($role, ['team_id' => $this->getTeamForRole($team), 'facility_id' => $facilityId]);
-        $this->roleLog()->create([
-            'role_id'          => $role->id,
-            'team_id'          => $this->getTeamForRole($team),
-            'facility_id'      => $facilityId,
-            'role_assigned_at' => Carbon::now()
-        ]);
-
+        $this->roles()->save($this->getSavedRole($role), ['team_id' => $this->getTeamForRole($team), 'facility_id' => $facilityId]);
         $this->fireModelEvent('roleGranted', false);
 
         return $this;
@@ -104,14 +85,6 @@ trait HasRoles
             $this->roles()->wherePivot('team_id', $teamId)->detach($role);
         } else {
             $this->roles()->wherePivot('team_id', $teamId)->wherePivot('facility_id', $facilityId)->detach($role);
-        }
-
-        $roleLog = $this->roleLog()->whereNull('role_removed_at')
-            ->where('team_id', $teamId)->where('facility_id', $facilityId)->where('role_id', $role->id)->first();
-
-        if ($roleLog) {
-            $roleLog->role_removed_at = Carbon::now();
-            $roleLog->save();
         }
 
         $this->fireModelEvent('roleRevoked', false);
