@@ -7,6 +7,7 @@ namespace Benwilkins\Authorizer;
 use Benwilkins\Authorizer\Exceptions\PermissionInvalid;
 use Illuminate\Contracts\Auth\Access\Authorizable;
 use Illuminate\Contracts\Auth\Access\Gate;
+use Illuminate\Support\Str;
 
 class AuthorizerLoader
 {
@@ -24,7 +25,10 @@ class AuthorizerLoader
                 $team = (count($params) > 0) ? $params[0] : null;
                 $facilityId = (count($params) > 1) ? $params[1] : null;
 
-                if (method_exists($user, 'isGrantedPermission')) {
+                $validTeam = property_exists($team, 'id') || $team === null || Str::isUuid($team);
+                $validFacilityId = Str::isUuid($facilityId) || $facilityId === null;
+
+                if (method_exists($user, 'isGrantedPermission') && $validTeam && $validFacilityId) {
                     return $user->isGrantedPermission($ability, $team, $facilityId) ?: null;
                 }
             } catch (PermissionInvalid $exception) {
