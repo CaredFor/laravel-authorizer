@@ -26,6 +26,7 @@ class AuthorizerLoader
                 $facilityId = (count($params) > 1) ? $params[1] : null;
 
                 $validTeam = (isset($team) && isset($team->id)) || $team === null || Str::isUuid($team);
+
                 $validFacilityId = Str::isUuid($facilityId) || $facilityId === null;
 
                 if (method_exists($user, 'isGrantedPermission') && $validTeam && $validFacilityId) {
