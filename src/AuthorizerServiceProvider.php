@@ -33,6 +33,13 @@ class AuthorizerServiceProvider extends ServiceProvider
             ], 'migrations');
         }
 
+        if (! class_exists('CreateRolesAssignedLogTable')) {
+            $timestamp = date('Y_m_d_His', time());
+            $this->publishes([
+                __DIR__ . '/../database/migrations/create_roles_assigned_log_table.php' => $this->app->databasePath()."/migrations/{$timestamp}create_roles_assigned_log_table.php",
+            ], 'migrations');
+        }
+
         $loader->register();
         $this->registerCommands();
     }
